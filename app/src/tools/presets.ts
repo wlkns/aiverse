@@ -1,4 +1,4 @@
-// Option ids must match the presets in api/main.ts — the API validates them.
+// Option ids must match the presets in worker/index.ts — the API validates them.
 
 export interface Option<T extends string = string> {
   id: T

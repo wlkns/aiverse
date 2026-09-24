@@ -1,9 +1,8 @@
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 
-// Same-origin by default: the Bunny middleware script answers /api/* on the
-// domain that serves the app. Set VITE_API_URL only for a cross-origin API.
-export const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
+// The Worker that serves the app also answers /api/*, so the API is same-origin.
+export const API_URL = '/api'
 
 export class ApiError extends Error {
   status: number

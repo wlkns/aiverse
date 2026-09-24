@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "aiverse",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-09-21",
+  "assets": {
+    // Serve index.html for app routes like /tone; the Vue router takes it from there.
+    "not_found_handling": "single-page-application",
+    // Only API requests run the Worker. Everything else is a static asset.
+    "run_worker_first": ["/api/*"],
+  },
+  // Non-secret settings. OPENAI_TOKEN and AUTH_TOKEN are secrets: set them with
+  // `wrangler secret put` (or in the dashboard), and in .dev.vars for local dev.
+  "vars": {
+    "DEFAULT_MODEL": "gpt-5.6-terra",
+    "DEFAULT_REASONING_EFFORT": "low",
+    "TIMEOUT": "60",
+  },
+  "observability": {
+    "enabled": true,
+  },
+}
