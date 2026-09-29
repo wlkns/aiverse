@@ -32,7 +32,7 @@ import { z } from 'zod'
  *   /api/key-points  → JSON   { text, source_type }
  *   /api/reply       → JSON   { message, intent, custom_intent?, points?, style, channel, variations }
  *   /api/headlines   → JSON   { text, kind, count, max_chars?, keywords? }
- *   /api/words       → JSON   { word, context?, style, count, single_words, include_opposites }
+ *   /api/words       → JSON   { word, context?, style, count, single_words, include_opposites, exclude? }
  *
  *   GET  /api/health → { ok: true } (no auth)
  *   POST /api/verify → { ok: true } (auth) — lets the client check a token
@@ -1359,6 +1359,7 @@ const MAX_OPPOSITES = 5
 // Ask for a few spares, so dropping duplicates or the original word still
 // leaves enough to fill the requested count.
 const WORD_SPARES = 3
+const MAX_EXCLUDED_WORDS = 50
 
 jsonTool<ReturnType<typeof wordsBody>, WordsResult>({
   path: '/words',
@@ -1434,17 +1435,25 @@ capitalisation) so each suggestion can replace it directly.
         ? `Also give up to ${MAX_OPPOSITES} opposites (antonyms) in the same form.`
         : 'Return an empty opposites list.'
     }
-- Write in the same language as the ${input.context ? 'context' : 'word'}.
+${
+  input.exclude.length
+    ? '- Never suggest any word in the <exclude> tags, or a close variant of one (e.g. its plural).\n'
+    : ''
+}- Write in the same language as the ${input.context ? 'context' : 'word'}.
 
 ${UNTRUSTED_GUARD}`,
     user: userMessage(
       'Suggest alternatives for this word or phrase.',
       tag('context', input.context),
       tag('word', input.word),
+      tag('exclude', input.exclude.join('\n') || undefined),
     ),
   }),
   postProcess: (result, input) => {
-    const seen = new Set([input.word.toLowerCase()])
+    // The original word and any excluded words are never returned, whatever the
+    // model does; this also drops case-insensitive duplicates.
+    const excluded = new Set(input.exclude.map((word) => word.toLowerCase()))
+    const seen = new Set([input.word.toLowerCase(), ...excluded])
     const suggestions = result.suggestions
       .map((s) => ({
         word: s.word.trim(),
@@ -1463,7 +1472,11 @@ ${UNTRUSTED_GUARD}`,
 
     return {
       suggestions,
-      opposites: input.include_opposites ? result.opposites.slice(0, MAX_OPPOSITES) : [],
+      opposites: input.include_opposites
+        ? result.opposites
+            .filter((o) => !excluded.has(o.word.trim().toLowerCase()))
+            .slice(0, MAX_OPPOSITES)
+        : [],
     }
   },
 })
@@ -1476,6 +1489,26 @@ function wordsBody() {
     count: count('count', 3, 12).default(6),
     single_words: z.boolean('"single_words" must be true or false.').default(false),
     include_opposites: z.boolean('"include_opposites" must be true or false.').default(false),
+    exclude: z
+      .array(
+        z
+          .string('"exclude" must be a list of words.')
+          .trim()
+          .max(100, '"exclude" entries must be at most 100 characters.'),
+        '"exclude" must be a list of words.',
+      )
+      .max(MAX_EXCLUDED_WORDS, `"exclude" can have at most ${MAX_EXCLUDED_WORDS} words.`)
+      .default([])
+      // Drop blanks and case-insensitive duplicates, keeping the first spelling.
+      .transform((words) => {
+        const seen = new Set<string>()
+        return words.filter((word) => {
+          const key = word.toLowerCase()
+          if (!key || seen.has(key)) return false
+          seen.add(key)
+          return true
+        })
+      }),
   })
 }
 

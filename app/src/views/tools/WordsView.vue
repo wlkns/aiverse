@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CornerLeftUp } from '@lucide/vue'
+import { Ban, CornerLeftUp } from '@lucide/vue'
 import ToolPage from '@/components/ui/ToolPage.vue'
 import TextField from '@/components/ui/TextField.vue'
 import TextAreaField from '@/components/ui/TextAreaField.vue'
@@ -17,8 +17,6 @@ import { getTool } from '@/tools/registry'
 
 const tool = getTool('words')
 const store = useWordsStore()
-
-const allWords = computed(() => store.result?.suggestions.map((s) => s.word).join('\n') ?? '')
 
 function fitBadge(fit: number) {
   if (fit >= 80) {
@@ -50,14 +48,23 @@ function highlight(sentence: string, word: string) {
   }
 }
 
+// Words excluded since this result came back disappear straight away.
 const cards = computed(
   () =>
-    store.result?.suggestions.map((suggestion) => ({
-      suggestion,
-      badge: fitBadge(suggestion.fit),
-      sentence: suggestion.in_context ? highlight(suggestion.in_context, suggestion.word) : null,
-    })) ?? [],
+    store.result?.suggestions
+      .filter((suggestion) => !store.isExcluded(suggestion.word))
+      .map((suggestion) => ({
+        suggestion,
+        badge: fitBadge(suggestion.fit),
+        sentence: suggestion.in_context ? highlight(suggestion.in_context, suggestion.word) : null,
+      })) ?? [],
 )
+
+const opposites = computed(
+  () => store.result?.opposites.filter((opposite) => !store.isExcluded(opposite.word)) ?? [],
+)
+
+const allWords = computed(() => cards.value.map(({ suggestion }) => suggestion.word).join('\n'))
 
 useRunShortcut(store.run)
 </script>
@@ -97,6 +104,13 @@ useRunShortcut(store.run)
           description="Also suggest a few antonyms."
         />
       </div>
+      <TextField
+        v-model="store.exclude"
+        label="Exclude"
+        hint="optional, comma-separated"
+        placeholder="e.g. workers, staff"
+        :max-length="2000"
+      />
       <RunButton
         label="Find words"
         :running="store.isRunning"
@@ -121,7 +135,7 @@ useRunShortcut(store.run)
 
         <div v-if="store.result" class="flex flex-col gap-6">
           <p v-if="!cards.length" class="text-sm text-slate-500">
-            No alternatives found. Try a different style, or allow phrases.
+            No alternatives left. Try a different style, allow phrases, or exclude fewer words.
           </p>
 
           <ul class="flex flex-col gap-3">
@@ -150,6 +164,15 @@ useRunShortcut(store.run)
                     <CornerLeftUp class="size-3.5" aria-hidden="true" />
                     Use
                   </button>
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium whitespace-nowrap text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                    title="Hide this word and never suggest it again"
+                    @click="store.excludeWord(suggestion.word)"
+                  >
+                    <Ban class="size-3.5" aria-hidden="true" />
+                    Exclude
+                  </button>
                 </div>
               </div>
               <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ suggestion.note }}</p>
@@ -167,11 +190,11 @@ useRunShortcut(store.run)
             </li>
           </ul>
 
-          <section v-if="store.result.opposites.length">
+          <section v-if="opposites.length">
             <h3 class="mb-2 text-sm font-semibold">Opposites</h3>
             <ul class="flex flex-wrap gap-2">
               <li
-                v-for="opposite in store.result.opposites"
+                v-for="opposite in opposites"
                 :key="opposite.word"
                 class="rounded-full bg-slate-100 px-3 py-1 text-sm dark:bg-slate-800"
                 :title="opposite.note"

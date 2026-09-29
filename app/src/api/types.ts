@@ -142,6 +142,8 @@ export interface WordsRequest {
   count: number
   single_words: boolean
   include_opposites: boolean
+  /** Words that must never be suggested. */
+  exclude?: string[]
 }
 
 export interface WordSuggestion {
