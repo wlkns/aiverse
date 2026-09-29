@@ -7,6 +7,7 @@ its API, and the API uses the OpenAI Responses API.
 | --- | --- | --- | --- |
 | Writer | `/write` | `POST /api/write` | streamed (SSE) |
 | Re-writer | `/rewrite` | `POST /api/rewrite` | JSON, 1–5 variations |
+| Word finder | `/words` | `POST /api/words` | JSON: context-aware alternatives (and optional opposites) |
 | Reply drafter | `/reply` | `POST /api/reply` | JSON, 1–3 options |
 | Headlines | `/headlines` | `POST /api/headlines` | JSON, 1–10 options with character counts |
 | Summariser | `/summarise` | `POST /api/summarise` | streamed (SSE) |

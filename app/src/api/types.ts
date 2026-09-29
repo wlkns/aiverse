@@ -8,6 +8,7 @@ import type {
   StyleId,
   SummaryFormat,
   SummaryLength,
+  WordStyle,
   WriteContentType,
   WriteLength,
 } from '@/tools/presets'
@@ -132,6 +133,29 @@ export interface HeadlinesRequest {
 export interface HeadlinesResult {
   max_chars: number
   items: { text: string; chars: number; over_limit: boolean }[]
+}
+
+export interface WordsRequest {
+  word: string
+  context?: string
+  style: WordStyle
+  count: number
+  single_words: boolean
+  include_opposites: boolean
+}
+
+export interface WordSuggestion {
+  word: string
+  note: string
+  /** 0–100: how well it fits the context. */
+  fit: number
+  /** The context with this suggestion swapped in; null without context. */
+  in_context: string | null
+}
+
+export interface WordsResult {
+  suggestions: WordSuggestion[]
+  opposites: { word: string; note: string }[]
 }
 
 /** Every JSON tool response carries token usage alongside its result. */

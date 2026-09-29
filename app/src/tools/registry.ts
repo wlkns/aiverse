@@ -1,5 +1,6 @@
 import type { Component } from 'vue'
 import {
+  BookA,
   FileText,
   Gauge,
   Heading,
@@ -11,7 +12,15 @@ import {
 } from '@lucide/vue'
 
 export type ToolId =
-  'write' | 'rewrite' | 'reply' | 'headlines' | 'summarise' | 'key-points' | 'explain' | 'tone'
+  | 'write'
+  | 'rewrite'
+  | 'words'
+  | 'reply'
+  | 'headlines'
+  | 'summarise'
+  | 'key-points'
+  | 'explain'
+  | 'tone'
 
 export type ToolCategory = 'create' | 'understand'
 
@@ -57,6 +66,16 @@ export const TOOLS: Tool[] = [
     icon: Repeat2,
     keywords: ['rephrase', 'paraphrase', 'style', 'tone', 'friendly', 'professional'],
     component: () => import('@/views/tools/RewriteView.vue'),
+  },
+  {
+    id: 'words',
+    name: 'Word finder',
+    path: '/words',
+    category: 'create',
+    description: 'Find the right word: alternatives that fit your sentence.',
+    icon: BookA,
+    keywords: ['synonym', 'thesaurus', 'alternative', 'word', 'phrase', 'antonym', 'opposite'],
+    component: () => import('@/views/tools/WordsView.vue'),
   },
   {
     id: 'reply',

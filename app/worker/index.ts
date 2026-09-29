@@ -32,6 +32,7 @@ import { z } from 'zod'
  *   /api/key-points  → JSON   { text, source_type }
  *   /api/reply       → JSON   { message, intent, custom_intent?, points?, style, channel, variations }
  *   /api/headlines   → JSON   { text, kind, count, max_chars?, keywords? }
+ *   /api/words       → JSON   { word, context?, style, count, single_words, include_opposites }
  *
  *   GET  /api/health → { ok: true } (no auth)
  *   POST /api/verify → { ok: true } (auth) — lets the client check a token
@@ -279,6 +280,34 @@ const HEADLINE_KINDS = {
     maxChars: 120,
   },
 } satisfies Record<string, HeadlineKind>
+
+const WORD_STYLES = {
+  'best-fit': {
+    label: 'Best fit',
+    instruction: 'the closest natural alternatives: same meaning, same register as the context',
+  },
+  simpler: {
+    label: 'Simpler',
+    instruction: 'plainer, more common words that are easier to read',
+  },
+  formal: {
+    label: 'More formal',
+    instruction: 'more formal, professional alternatives',
+  },
+  casual: {
+    label: 'More casual',
+    instruction: 'more casual, conversational alternatives',
+  },
+  vivid: {
+    label: 'More vivid',
+    instruction: 'more vivid, precise or evocative alternatives that add colour',
+  },
+  creative: {
+    label: 'Creative',
+    instruction:
+      'creative, unexpected or figurative alternatives that still make sense in the context, e.g. "Menders" for "Agents" in "Agents are used to fix problems"',
+  },
+} satisfies Record<string, Preset>
 
 function presetIds<T extends Record<string, unknown>>(presets: T) {
   return Object.keys(presets) as [keyof T & string, ...(keyof T & string)[]]
@@ -1316,6 +1345,137 @@ function headlinesBody() {
     count: count('count', 1, 10).default(5),
     max_chars: count('max_chars', 10, 500).optional(),
     keywords: optionalText('keywords', 300),
+  })
+}
+
+// ---------- Tool: Words ----------
+
+interface WordsResult {
+  suggestions: { word: string; note: string; fit: number; in_context: string | null }[]
+  opposites: { word: string; note: string }[]
+}
+
+const MAX_OPPOSITES = 5
+// Ask for a few spares, so dropping duplicates or the original word still
+// leaves enough to fill the requested count.
+const WORD_SPARES = 3
+
+jsonTool<ReturnType<typeof wordsBody>, WordsResult>({
+  path: '/words',
+  body: wordsBody(),
+  schemaName: 'words_result',
+  maxOutputTokens: 6000,
+  schema: (input) => ({
+    type: 'object',
+    properties: {
+      suggestions: {
+        type: 'array',
+        minItems: input.count,
+        maxItems: input.count + WORD_SPARES,
+        items: {
+          type: 'object',
+          properties: {
+            word: {
+              type: 'string',
+              description: 'The alternative, in the same grammatical form as the original.',
+            },
+            note: {
+              type: 'string',
+              description: 'A few words on its nuance or how it differs from the original.',
+            },
+            fit: score('How well it fits the context: 100 = drops straight in.'),
+            in_context: {
+              type: ['string', 'null'],
+              description:
+                'The context with the original replaced by this alternative (adjusting only articles or agreement if needed), or null if no context was given.',
+            },
+          },
+          required: ['word', 'note', 'fit', 'in_context'],
+          additionalProperties: false,
+        },
+      },
+      opposites: {
+        type: 'array',
+        maxItems: input.include_opposites ? MAX_OPPOSITES : 0,
+        items: {
+          type: 'object',
+          properties: {
+            word: { type: 'string' },
+            note: { type: 'string' },
+          },
+          required: ['word', 'note'],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ['suggestions', 'opposites'],
+    additionalProperties: false,
+  }),
+  prompt: (input) => ({
+    system: `You are a thesaurus that understands context. Suggest alternatives for the \
+word or phrase in the <word> tags${input.context ? ', as it is used in the <context> tags' : ''}.
+- Style: ${WORD_STYLES[input.style].instruction}.
+- Give ${input.count}–${input.count + WORD_SPARES} distinct suggestions, best first. Never \
+repeat the original.
+- ${
+      input.single_words
+        ? 'Single words only: no phrases.'
+        : 'Single words are preferred, but short phrases are fine where they fit better.'
+    }
+- Match the original's grammatical form (part of speech, plural, tense, \
+capitalisation) so each suggestion can replace it directly.
+- ${
+      input.context
+        ? 'Judge fit against the context: the meaning the original has there, not every sense of the word.'
+        : 'No context was given, so cover its most common meaning.'
+    }
+- ${
+      input.include_opposites
+        ? `Also give up to ${MAX_OPPOSITES} opposites (antonyms) in the same form.`
+        : 'Return an empty opposites list.'
+    }
+- Write in the same language as the ${input.context ? 'context' : 'word'}.
+
+${UNTRUSTED_GUARD}`,
+    user: userMessage(
+      'Suggest alternatives for this word or phrase.',
+      tag('context', input.context),
+      tag('word', input.word),
+    ),
+  }),
+  postProcess: (result, input) => {
+    const seen = new Set([input.word.toLowerCase()])
+    const suggestions = result.suggestions
+      .map((s) => ({
+        word: s.word.trim(),
+        note: s.note,
+        fit: clampScore(s.fit),
+        in_context: input.context ? s.in_context : null,
+      }))
+      .filter((s) => {
+        const key = s.word.toLowerCase()
+        if (!key || seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .sort((a, b) => b.fit - a.fit)
+      .slice(0, input.count)
+
+    return {
+      suggestions,
+      opposites: input.include_opposites ? result.opposites.slice(0, MAX_OPPOSITES) : [],
+    }
+  },
+})
+
+function wordsBody() {
+  return toolSchema({
+    word: text('word', 100),
+    context: optionalText('context', 5_000),
+    style: oneOf('style', WORD_STYLES).default('best-fit'),
+    count: count('count', 3, 12).default(6),
+    single_words: z.boolean('"single_words" must be true or false.').default(false),
+    include_opposites: z.boolean('"include_opposites" must be true or false.').default(false),
   })
 }
 

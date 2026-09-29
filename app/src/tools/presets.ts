@@ -95,6 +95,16 @@ export const HEADLINE_KINDS = [
 ] as const satisfies (Option & { maxChars: number })[]
 export type HeadlineKind = Ids<typeof HEADLINE_KINDS>
 
+export const WORD_STYLES = [
+  { id: 'best-fit', label: 'Best fit' },
+  { id: 'simpler', label: 'Simpler' },
+  { id: 'formal', label: 'More formal' },
+  { id: 'casual', label: 'More casual' },
+  { id: 'vivid', label: 'More vivid' },
+  { id: 'creative', label: 'Creative' },
+] as const satisfies Option[]
+export type WordStyle = Ids<typeof WORD_STYLES>
+
 export const REASONING_EFFORTS = [
   { id: 'none', label: 'None' },
   { id: 'low', label: 'Low' },

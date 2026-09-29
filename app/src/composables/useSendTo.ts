@@ -6,12 +6,14 @@ import { useReplyStore } from '@/stores/reply'
 import { useRewriteStore } from '@/stores/rewrite'
 import { useSummariseStore } from '@/stores/summarise'
 import { useToneStore } from '@/stores/tone'
+import { useWordsStore } from '@/stores/words'
 import { useWriteStore } from '@/stores/write'
 import { getTool, type ToolId } from '@/tools/registry'
 
 const receivers: Record<ToolId, () => { receive: (text: string) => void }> = {
   write: useWriteStore,
   rewrite: useRewriteStore,
+  words: useWordsStore,
   reply: useReplyStore,
   headlines: useHeadlinesStore,
   summarise: useSummariseStore,
