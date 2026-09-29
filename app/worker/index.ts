@@ -13,9 +13,9 @@ import { z } from 'zod'
  *
  * Secrets (`wrangler secret put`, or the Cloudflare dashboard; .dev.vars locally):
  *   OPENAI_TOKEN             - OpenAI API key (required)
- *   AUTH_TOKEN               - shared secret for client auth (required)
  *
- * Variables (wrangler.jsonc "vars"):
+ * Variables (wrangler.jsonc "vars"; .dev.vars overrides them locally):
+ *   AUTH_TOKEN               - shared access token for client auth (required)
  *   DEFAULT_MODEL            - defaults to "gpt-5.6-terra"
  *   DEFAULT_REASONING_EFFORT - none|low|medium|high|xhigh|max; defaults to "low"
  *   TIMEOUT                  - seconds to wait for OpenAI to respond; defaults to 60

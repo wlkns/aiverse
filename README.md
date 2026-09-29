@@ -43,8 +43,7 @@ You need Node 22+ and pnpm. From `app/`, install the dependencies:
 pnpm install
 ```
 
-Create your local secrets file (git-ignored), then fill in your OpenAI key and choose an
-access token:
+Create your local secrets file (git-ignored), then fill in your OpenAI key:
 
 ```bash
 cp .dev.vars.example .dev.vars
@@ -56,9 +55,9 @@ Start the app and the API together on http://localhost:4217:
 pnpm dev
 ```
 
-Open any tool and enter the `AUTH_TOKEN` from `.dev.vars` to unlock it. The token is
-checked against the API and stored in this browser's localStorage only. Nothing secret is
-built into the bundle.
+Open any tool and enter the `AUTH_TOKEN` from `wrangler.jsonc` (or `.dev.vars`, if you've
+set one there) to unlock it. The token is checked against the API and stored in this
+browser's localStorage only. Nothing secret is built into the bundle.
 
 | Script | Does |
 | --- | --- |
@@ -88,14 +87,10 @@ Once this is set up, every push to `main` deploys the app and the API together.
    - **Deploy command:** `npx wrangler deploy` (the default)
 
    Then deploy. The first build creates the Worker, but it won't work until you add the
-   secrets in the next step.
-3. **Add the secrets.** Open the Worker's *Settings → Variables and Secrets*, and add two
-   entries of type *Secret*:
-
-   | Name | Value |
-   | --- | --- |
-   | `OPENAI_TOKEN` | your OpenAI API key |
-   | `AUTH_TOKEN` | the access token users will enter to unlock the app (a long random string) |
+   OpenAI key in the next step.
+3. **Add the OpenAI key.** Open the Worker's *Settings → Variables and Secrets*, and add
+   `OPENAI_TOKEN` (type *Secret*) with your OpenAI API key. Don't add `AUTH_TOKEN` here:
+   it's set in `wrangler.jsonc` (see [Settings](#settings)), and the names would clash.
 
 4. **Check it works** (use your Worker's URL from its overview page):
 
@@ -104,7 +99,8 @@ Once this is set up, every push to `main` deploys the app and the API together.
    ```
 
    It should print `{"ok":true}`. Then open `/tone` on the same domain. You should see the
-   unlock screen, and entering your `AUTH_TOKEN` should take you to the Tone analyser.
+   unlock screen, and entering the `AUTH_TOKEN` from `wrangler.jsonc` should take you to
+   the Tone analyser.
 5. **Optional: add a custom domain** under the Worker's *Settings → Domains & Routes*.
 
 ### Deploying updates
@@ -128,12 +124,13 @@ pnpm run deploy
 
 ### Settings
 
-Non-secret settings are in `vars` in [`app/wrangler.jsonc`](app/wrangler.jsonc). They're
+Settings are in `vars` in [`app/wrangler.jsonc`](app/wrangler.jsonc). They're
 version-controlled and applied on every deploy, so change them there rather than in the
 dashboard:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
+| `AUTH_TOKEN` | *(set in the file)* | the access token users enter to unlock the app. Anyone with access to the repo can see it; to change it, edit it and deploy |
 | `DEFAULT_MODEL` | `gpt-5.6-terra` | model used when the app doesn't choose one |
 | `DEFAULT_REASONING_EFFORT` | `low` | `none` / `low` / `medium` / `high` / `xhigh` / `max` |
 | `TIMEOUT` | `60` | seconds to wait for OpenAI to start responding |

@@ -1,3 +1,4 @@
 # Copy to .dev.vars (git-ignored) for `pnpm dev`.
 OPENAI_TOKEN=sk-...
-AUTH_TOKEN=choose-a-long-random-string
+# Optional: overrides the AUTH_TOKEN in wrangler.jsonc for local dev.
+# AUTH_TOKEN=

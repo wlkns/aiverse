@@ -9,9 +9,12 @@
     // Only API requests run the Worker. Everything else is a static asset.
     "run_worker_first": ["/api/*"],
   },
-  // Non-secret settings. OPENAI_TOKEN and AUTH_TOKEN are secrets: set them with
+  // Settings applied on every deploy. OPENAI_TOKEN is a secret: set it with
   // `wrangler secret put` (or in the dashboard), and in .dev.vars for local dev.
+  // AUTH_TOKEN lives here, so don't also add it as a dashboard secret — the
+  // names would clash. Values in .dev.vars override these locally.
   "vars": {
+    "AUTH_TOKEN": "Zw0SZ2ZP2MMr66MEhL",
     "DEFAULT_MODEL": "gpt-5.6-terra",
     "DEFAULT_REASONING_EFFORT": "low",
     "TIMEOUT": "60",
