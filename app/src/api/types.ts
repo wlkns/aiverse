@@ -2,7 +2,7 @@ import type {
   ExplainLevel,
   HeadlineKind,
   KeyPointSource,
-  ReasoningEffort,
+  ModelTier,
   ReplyChannel,
   ReplyIntent,
   StyleId,
@@ -19,9 +19,9 @@ export interface TokenUsage {
   total_tokens: number
 }
 
-export interface ModelOptions {
-  model?: string
-  reasoning_effort?: ReasoningEffort
+/** Sent with every tool request. */
+export interface RequestOptions {
+  tier: ModelTier
 }
 
 // ---------- Stream tools ----------

@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import { Lock, RotateCcw, Settings } from '@lucide/vue'
-import OptionSelect from '@/components/ui/OptionSelect.vue'
-import TextField from '@/components/ui/TextField.vue'
+import CostIndicator from '@/components/ui/CostIndicator.vue'
+import FormField from '@/components/ui/FormField.vue'
 import { API_URL } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
-import { REASONING_EFFORTS, type Option, type ReasoningEffort } from '@/tools/presets'
+import { MODEL_TIERS } from '@/tools/presets'
 
 const auth = useAuthStore()
 const settings = useSettingsStore()
-
-const effortOptions: Option<ReasoningEffort | ''>[] = [
-  { id: '', label: 'Server default' },
-  ...REASONING_EFFORTS,
-]
 </script>
 
 <template>
@@ -36,19 +31,32 @@ const effortOptions: Option<ReasoningEffort | ''>[] = [
       class="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
       @submit.prevent
     >
-      <TextField
-        v-model="settings.model"
-        label="Model"
-        hint="leave blank for the server default"
-        placeholder="e.g. gpt-5.6-terra"
-        :max-length="100"
-      />
-      <OptionSelect
-        v-model="settings.reasoningEffort"
-        label="Reasoning effort"
-        hint="higher is slower but more careful"
-        :options="effortOptions"
-      />
+      <FormField label="Speed and quality" as="fieldset">
+        <div class="flex flex-col gap-2">
+          <label
+            v-for="tier in MODEL_TIERS"
+            :key="tier.id"
+            class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3.5 transition-colors hover:border-slate-300 has-checked:border-indigo-500 has-checked:bg-indigo-50/60 has-focus-visible:ring-2 has-focus-visible:ring-indigo-500 dark:border-slate-700 dark:hover:border-slate-600 dark:has-checked:border-indigo-500 dark:has-checked:bg-indigo-500/10"
+          >
+            <input
+              v-model="settings.tier"
+              type="radio"
+              name="tier"
+              :value="tier.id"
+              class="mt-0.5 size-4 accent-indigo-600"
+            />
+            <span class="min-w-0 flex-1">
+              <span class="flex items-center justify-between gap-3">
+                <span class="text-sm font-semibold">{{ tier.label }}</span>
+                <CostIndicator :cost="tier.cost" class="text-sm" />
+              </span>
+              <span class="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">
+                {{ tier.description }}
+              </span>
+            </span>
+          </label>
+        </div>
+      </FormField>
       <div class="flex flex-wrap gap-3">
         <button
           type="button"
@@ -56,7 +64,7 @@ const effortOptions: Option<ReasoningEffort | ''>[] = [
           @click="settings.reset()"
         >
           <RotateCcw class="size-4" aria-hidden="true" />
-          Reset to defaults
+          Reset to default
         </button>
         <button
           type="button"

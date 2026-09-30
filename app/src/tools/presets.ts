@@ -105,12 +105,27 @@ export const WORD_STYLES = [
 ] as const satisfies Option[]
 export type WordStyle = Ids<typeof WORD_STYLES>
 
-export const REASONING_EFFORTS = [
-  { id: 'none', label: 'None' },
-  { id: 'low', label: 'Low' },
-  { id: 'medium', label: 'Medium' },
-  { id: 'high', label: 'High' },
-  { id: 'xhigh', label: 'Extra high' },
-  { id: 'max', label: 'Max' },
-] as const satisfies Option[]
-export type ReasoningEffort = Ids<typeof REASONING_EFFORTS>
+// Speed/quality options. Which model each uses is configured in wrangler.jsonc
+// (MODEL_TIERS); the app deliberately never names models.
+export const MODEL_TIERS = [
+  {
+    id: 'capable',
+    label: 'Most capable',
+    description: 'Best quality for nuanced writing and tricky analysis. Slowest.',
+    cost: 3,
+  },
+  {
+    id: 'balanced',
+    label: 'Balanced',
+    description: 'Good quality at a sensible speed and cost.',
+    cost: 2,
+  },
+  {
+    id: 'quick',
+    label: 'Quickest',
+    description: 'Fast, low-cost results for simple jobs and first drafts.',
+    cost: 1,
+  },
+] as const satisfies (Option & { description: string; cost: 1 | 2 | 3 })[]
+export type ModelTier = Ids<typeof MODEL_TIERS>
+export const DEFAULT_MODEL_TIER: ModelTier = 'balanced'

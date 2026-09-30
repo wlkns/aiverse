@@ -16,14 +16,16 @@ import { z } from 'zod'
  *
  * Variables (wrangler.jsonc "vars"; .dev.vars overrides them locally):
  *   AUTH_TOKEN               - shared access token for client auth (required)
- *   DEFAULT_MODEL            - defaults to "gpt-5.6-terra"
- *   DEFAULT_REASONING_EFFORT - none|low|medium|high|xhigh|max; defaults to "low"
+ *   MODEL_TIERS              - the OpenAI model + reasoning effort behind each tier
+ *                              (capable, balanced, quick) (required)
+ *   DEFAULT_TIER             - tier used when a request doesn't pick one; defaults to "balanced"
  *   TIMEOUT                  - seconds to wait for OpenAI to respond; defaults to 60
  *
  * Auth: clients send the base64-encoded token:
  *   Authorization: Bearer btoa(AUTH_TOKEN)
  *
- * Endpoints (all POST JSON, all accept optional "model" and "reasoning_effort"):
+ * Endpoints (all POST JSON, all accept an optional "tier": capable|balanced|quick).
+ * Clients pick a tier, never a model, so model choice and cost stay in config.
  *   /api/summarise   → SSE    { text, length, format, focus? }
  *   /api/write       → SSE    { prompt, content_type, tone, length }
  *   /api/explain     → SSE    { text, level, analogy, glossary }
@@ -55,19 +57,23 @@ const AUTH_TOKEN = env.AUTH_TOKEN ?? '' // clients send: Authorization: Bearer b
 const OPENAI_API_URL = 'https://api.openai.com/v1/responses'
 
 const ALLOWED_REASONING_EFFORTS = ['none', 'low', 'medium', 'high', 'xhigh', 'max'] as const
-type ReasoningEffort = (typeof ALLOWED_REASONING_EFFORTS)[number]
 
-const DEFAULT_MODEL = env.DEFAULT_MODEL || 'gpt-5.6-terra'
-const DEFAULT_REASONING_EFFORT: ReasoningEffort = ALLOWED_REASONING_EFFORTS.includes(
-  env.DEFAULT_REASONING_EFFORT as ReasoningEffort,
-)
-  ? (env.DEFAULT_REASONING_EFFORT as ReasoningEffort)
-  : 'low'
+// Speed/quality tiers the app offers. Each maps to a model and reasoning effort
+// in wrangler.jsonc (MODEL_TIERS), so models can change without an app update.
+const MODEL_TIER_IDS = ['capable', 'balanced', 'quick'] as const
+type ModelTier = (typeof MODEL_TIER_IDS)[number]
 
-// Text models only: must start with "gpt-", sane characters, and no
-// audio/realtime/image/etc. variants.
-const MODEL_PATTERN = /^gpt-[a-z0-9][a-z0-9.\-]*$/
-const MODEL_BLOCKLIST = /(audio|realtime|transcribe|tts|image|search)/
+const tierConfigSchema = z.object({
+  model: z.string().trim().min(1),
+  reasoning_effort: z.enum(ALLOWED_REASONING_EFFORTS),
+})
+const MODEL_TIERS = z
+  .object({ capable: tierConfigSchema, balanced: tierConfigSchema, quick: tierConfigSchema })
+  .safeParse(env.MODEL_TIERS)
+
+const DEFAULT_TIER: ModelTier = MODEL_TIER_IDS.includes(env.DEFAULT_TIER as ModelTier)
+  ? (env.DEFAULT_TIER as ModelTier)
+  : 'balanced'
 
 const MAX_TEXT_LENGTH = 50_000
 const MAX_SHORT_TEXT_LENGTH = 2_000
@@ -443,35 +449,19 @@ const count = (field: string, min: number, max: number) =>
     .min(min, `"${field}" must be between ${min} and ${max}.`)
     .max(max, `"${field}" must be between ${min} and ${max}.`)
 
-// Optional model override (falls back to DEFAULT_MODEL).
-const modelSchema = z
-  .string('"model" must be a string.')
-  .trim()
-  .toLowerCase()
-  .refine(
-    (model) => MODEL_PATTERN.test(model) && !MODEL_BLOCKLIST.test(model),
-    '"model" must be a text gpt-* model (e.g. "gpt-5.6-terra").',
-  )
+// Optional speed/quality tier (falls back to DEFAULT_TIER).
+const tierSchema = z
+  .enum(MODEL_TIER_IDS, `"tier" must be one of: ${MODEL_TIER_IDS.join(', ')}.`)
   .optional()
-  .transform((model) => model ?? DEFAULT_MODEL)
-
-// Optional reasoning effort override (falls back to DEFAULT_REASONING_EFFORT).
-const reasoningEffortSchema = z
-  .enum(
-    ALLOWED_REASONING_EFFORTS,
-    `"reasoning_effort" must be one of: ${ALLOWED_REASONING_EFFORTS.join(', ')}.`,
-  )
-  .optional()
-  .transform((effort) => effort ?? DEFAULT_REASONING_EFFORT)
+  .transform((tier) => tier ?? DEFAULT_TIER)
 
 const toolSchema = <T extends z.ZodRawShape>(shape: T) =>
   z.object({
     ...shape,
-    model: modelSchema,
-    reasoning_effort: reasoningEffortSchema,
+    tier: tierSchema,
   })
 
-type ModelOptions = { model: string; reasoning_effort: ReasoningEffort }
+type ModelOptions = { tier: ModelTier }
 
 function formatZodError(error: z.ZodError): string {
   const issue = error.issues[0]
@@ -550,14 +540,26 @@ function assertConfigured(): void {
   }
 }
 
+function tierSettings(tier: ModelTier) {
+  if (!MODEL_TIERS.success) {
+    console.error('Invalid MODEL_TIERS:', MODEL_TIERS.error.issues)
+    throw new HttpError(
+      'The AI service is misconfigured (MODEL_TIERS in wrangler.jsonc is invalid).',
+      500,
+    )
+  }
+  return MODEL_TIERS.data[tier]
+}
+
 function openAIRequestBody(
   prompt: Prompt,
   options: ModelOptions,
   maxOutputTokens: number,
 ): Record<string, unknown> {
+  const { model, reasoning_effort } = tierSettings(options.tier)
   return {
-    model: options.model,
-    reasoning: { effort: options.reasoning_effort },
+    model,
+    reasoning: { effort: reasoning_effort },
     input: [
       { role: 'system', content: prompt.system },
       { role: 'user', content: prompt.user },
@@ -735,7 +737,7 @@ const TOOL_PATHS: string[] = []
 
 app.get('/', (c) => c.json({ ok: true, tools: TOOL_PATHS }))
 app.get('/health', (c) => c.json({ ok: true }))
-app.post('/verify', (c) => c.json({ ok: true, model: DEFAULT_MODEL }))
+app.post('/verify', (c) => c.json({ ok: true }))
 
 /** Register a tool that streams free text back as SSE. */
 function streamTool<S extends z.ZodType<ModelOptions>>(def: {

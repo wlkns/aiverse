@@ -1,26 +1,20 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { ModelOptions } from '@/api/types'
-import type { ReasoningEffort } from '@/tools/presets'
+import type { RequestOptions } from '@/api/types'
+import { DEFAULT_MODEL_TIER, type ModelTier } from '@/tools/presets'
 
 export const useSettingsStore = defineStore(
   'settings',
   () => {
-    /** Empty means "use the server default". */
-    const model = ref('')
-    const reasoningEffort = ref<ReasoningEffort | ''>('')
+    const tier = ref<ModelTier>(DEFAULT_MODEL_TIER)
 
-    const modelOptions = computed<ModelOptions>(() => ({
-      ...(model.value.trim() && { model: model.value.trim() }),
-      ...(reasoningEffort.value && { reasoning_effort: reasoningEffort.value }),
-    }))
+    const requestOptions = computed<RequestOptions>(() => ({ tier: tier.value }))
 
     function reset() {
-      model.value = ''
-      reasoningEffort.value = ''
+      tier.value = DEFAULT_MODEL_TIER
     }
 
-    return { model, reasoningEffort, modelOptions, reset }
+    return { tier, requestOptions, reset }
   },
-  { persist: { pick: ['model', 'reasoningEffort'] } },
+  { persist: { pick: ['tier'] } },
 )

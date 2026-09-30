@@ -35,10 +35,10 @@ const entries: Entry[] = [
   {
     id: 'settings',
     name: 'Settings',
-    description: 'Model and reasoning effort',
+    description: 'Speed, quality and cost',
     path: '/settings',
     icon: Settings,
-    keywords: ['model', 'reasoning', 'lock', 'token'],
+    keywords: ['speed', 'quality', 'cost', 'price', 'fast', 'lock', 'token'],
   },
 ]
 

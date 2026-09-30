@@ -15,8 +15,16 @@
   // names would clash. Values in .dev.vars override these locally.
   "vars": {
     "AUTH_TOKEN": "Zw0SZ2ZP2MMr66MEhL",
-    "DEFAULT_MODEL": "gpt-5.6-terra",
-    "DEFAULT_REASONING_EFFORT": "low",
+    // The OpenAI model and reasoning effort behind each option in the app's
+    // Settings. The app shows these as "Most capable" (£££), "Balanced" (££) and
+    // "Quickest" (£), and never names the model.
+    "MODEL_TIERS": {
+      "capable": { "model": "gpt-5.6-sol", "reasoning_effort": "medium" },
+      "balanced": { "model": "gpt-5.6-terra", "reasoning_effort": "low" },
+      "quick": { "model": "gpt-5.6-luna", "reasoning_effort": "low" },
+    },
+    // Used when a request doesn't choose a tier (the app always does).
+    "DEFAULT_TIER": "balanced",
     "TIMEOUT": "60",
   },
   "observability": {

@@ -67,15 +67,15 @@ export async function apiFetch(path: string, init: ApiRequestInit = {}): Promise
   return response
 }
 
-/** Merge the user's model settings into a tool request body. */
-export function withModelOptions<T extends object>(body: T): T {
-  return { ...body, ...useSettingsStore().modelOptions }
+/** Merge the user's settings (speed/quality tier) into a tool request body. */
+export function withRequestOptions<T extends object>(body: T): T {
+  return { ...body, ...useSettingsStore().requestOptions }
 }
 
 export async function postJson<T>(path: string, body: object, signal?: AbortSignal): Promise<T> {
   const response = await apiFetch(path, {
     method: 'POST',
-    body: JSON.stringify(withModelOptions(body)),
+    body: JSON.stringify(withRequestOptions(body)),
     signal,
   })
   return response.json() as Promise<T>

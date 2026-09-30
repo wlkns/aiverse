@@ -132,9 +132,23 @@ dashboard:
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `AUTH_TOKEN` | *(set in the file)* | the access token users enter to unlock the app. Anyone with access to the repo can see it; to change it, edit it and deploy |
-| `DEFAULT_MODEL` | `gpt-5.6-terra` | model used when the app doesn't choose one |
-| `DEFAULT_REASONING_EFFORT` | `low` | `none` / `low` / `medium` / `high` / `xhigh` / `max` |
+| `MODEL_TIERS` | Sol / Terra / Luna | the OpenAI model and reasoning effort behind each speed/quality option (see below) |
+| `DEFAULT_TIER` | `balanced` | tier used when an API request doesn't choose one (the app always does) |
 | `TIMEOUT` | `60` | seconds to wait for OpenAI to start responding |
+
+**Speed and quality.** Users pick one of three options in the app's Settings. The app
+shows the label and a £ price guide, never the model name. You choose the model behind each
+one in `MODEL_TIERS`:
+
+| Tier | Shown in the app as | Default model | Reasoning effort |
+| --- | --- | --- | --- |
+| `capable` | Most capable · £££ | `gpt-5.6-sol` | `medium` |
+| `balanced` | Balanced · ££ | `gpt-5.6-terra` | `low` |
+| `quick` | Quickest · £ | `gpt-5.6-luna` | `low` |
+
+Reasoning effort can be `none`, `low`, `medium`, `high`, `xhigh` or `max`. API clients send
+`"tier": "capable" | "balanced" | "quick"` and can't choose a model directly, so cost stays
+under your control.
 
 After editing `wrangler.jsonc`, run `pnpm cf-typegen` to update the Worker's types.
 

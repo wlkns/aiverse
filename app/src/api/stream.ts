@@ -1,5 +1,5 @@
 import { createParser, type EventSourceMessage } from 'eventsource-parser'
-import { ApiError, apiFetch, withModelOptions } from './client'
+import { ApiError, apiFetch, withRequestOptions } from './client'
 import type { StreamEvent } from './types'
 
 function toStreamEvent(message: EventSourceMessage): StreamEvent | null {
@@ -29,7 +29,7 @@ export async function* postStream(
   const response = await apiFetch(path, {
     method: 'POST',
     headers: { Accept: 'text/event-stream' },
-    body: JSON.stringify(withModelOptions(body)),
+    body: JSON.stringify(withRequestOptions(body)),
     signal,
   })
 
