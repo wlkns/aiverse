@@ -2,6 +2,7 @@
 import { Lock, RotateCcw, Settings } from '@lucide/vue'
 import CostIndicator from '@/components/ui/CostIndicator.vue'
 import FormField from '@/components/ui/FormField.vue'
+import ToggleSwitch from '@/components/ui/ToggleSwitch.vue'
 import { API_URL } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
@@ -21,9 +22,7 @@ const settings = useSettingsStore()
       </span>
       <div>
         <h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Applies to every tool, and is saved in this browser.
-        </p>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Applies to every tool.</p>
       </div>
     </header>
 
@@ -57,6 +56,18 @@ const settings = useSettingsStore()
           </label>
         </div>
       </FormField>
+      <div class="border-t border-slate-100 pt-5 dark:border-slate-800">
+        <ToggleSwitch
+          :model-value="settings.remember"
+          label="Remember my work on this device"
+          :description="
+            settings.remember
+              ? 'Your inputs, settings and access token are saved in this browser. Turning this off deletes them.'
+              : 'Nothing is saved. Everything is forgotten when you close or reload this tab, and you’ll need your access token again.'
+          "
+          @update:model-value="settings.setRemember"
+        />
+      </div>
       <div class="flex flex-wrap gap-3">
         <button
           type="button"
