@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AppLogo from './AppLogo.vue'
-import LockButton from './LockButton.vue'
 import NavList from './NavList.vue'
 import SearchButton from './SearchButton.vue'
+import SidebarFooter from './SidebarFooter.vue'
 </script>
 
 <template>
@@ -12,6 +12,6 @@ import SearchButton from './SearchButton.vue'
     <div class="px-2"><AppLogo /></div>
     <SearchButton />
     <NavList class="flex-1" />
-    <LockButton />
+    <SidebarFooter />
   </aside>
 </template>

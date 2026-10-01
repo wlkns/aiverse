@@ -8,7 +8,7 @@ export const useSettingsStore = defineStore(
   'settings',
   () => {
     const tier = ref<ModelTier>(DEFAULT_MODEL_TIER)
-    /** Save inputs, settings and the access token in this browser. */
+    /** Save tool inputs in this browser. */
     const remember = ref(isPersistenceEnabled())
 
     const requestOptions = computed<RequestOptions>(() => ({ tier: tier.value }))

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { House, Settings } from '@lucide/vue'
+import { House } from '@lucide/vue'
 import { CATEGORIES, toolsIn } from '@/tools/registry'
 
 defineEmits<{ navigate: [] }>()
@@ -41,15 +41,5 @@ const activeClass = '!bg-indigo-50 !text-indigo-700 dark:!bg-indigo-500/10 dark:
         </li>
       </ul>
     </div>
-
-    <RouterLink
-      to="/settings"
-      :class="linkClass"
-      :active-class="activeClass"
-      @click="$emit('navigate')"
-    >
-      <Settings class="size-4 shrink-0" aria-hidden="true" />
-      Settings
-    </RouterLink>
   </nav>
 </template>

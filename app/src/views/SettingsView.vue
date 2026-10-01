@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Lock, RotateCcw, Settings } from '@lucide/vue'
+import { LogOut, RotateCcw, Settings } from '@lucide/vue'
 import CostIndicator from '@/components/ui/CostIndicator.vue'
 import FormField from '@/components/ui/FormField.vue'
 import ToggleSwitch from '@/components/ui/ToggleSwitch.vue'
@@ -62,8 +62,8 @@ const settings = useSettingsStore()
           label="Remember my work on this device"
           :description="
             settings.remember
-              ? 'Your inputs, settings and access token are saved in this browser. Turning this off deletes them.'
-              : 'Nothing is saved. Everything is forgotten when you close or reload this tab, and you’ll need your access token again.'
+              ? 'Your inputs are saved in this browser. Turning this off deletes them.'
+              : 'Your inputs aren’t saved, and are forgotten when you close or reload this tab.'
           "
           @update:model-value="settings.setRemember"
         />
@@ -82,8 +82,8 @@ const settings = useSettingsStore()
           class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
           @click="auth.lock()"
         >
-          <Lock class="size-4" aria-hidden="true" />
-          Lock and forget token
+          <LogOut class="size-4" aria-hidden="true" />
+          Log out
         </button>
       </div>
     </form>

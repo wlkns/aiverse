@@ -5,9 +5,9 @@ import { onKeyStroke, useScrollLock } from '@vueuse/core'
 import { Menu, X } from '@lucide/vue'
 import { useUiStore } from '@/stores/ui'
 import AppLogo from './AppLogo.vue'
-import LockButton from './LockButton.vue'
 import NavList from './NavList.vue'
 import SearchButton from './SearchButton.vue'
+import SidebarFooter from './SidebarFooter.vue'
 
 const ui = useUiStore()
 const route = useRoute()
@@ -81,7 +81,7 @@ onKeyStroke('Escape', () => (ui.drawerOpen = false))
           </div>
           <SearchButton />
           <NavList class="flex-1" @navigate="ui.drawerOpen = false" />
-          <LockButton />
+          <SidebarFooter @navigate="ui.drawerOpen = false" />
         </aside>
       </Transition>
     </Teleport>

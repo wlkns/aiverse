@@ -7,10 +7,8 @@ import ErrorAlert from '@/components/ui/ErrorAlert.vue'
 import TextField from '@/components/ui/TextField.vue'
 import { errorMessage } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
-import { useSettingsStore } from '@/stores/settings'
 
 const auth = useAuthStore()
-const settings = useSettingsStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -52,12 +50,7 @@ async function submit() {
         <div>
           <h1 class="text-lg font-semibold">Unlock AIverse</h1>
           <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Enter your access token.
-            {{
-              settings.remember
-                ? 'It’s saved in this browser only.'
-                : 'It’s kept for this tab only, and never saved.'
-            }}
+            Enter your access token. It’s saved in this browser only.
           </p>
         </div>
         <TextField

@@ -60,10 +60,10 @@ Open any tool and enter the `AUTH_TOKEN` from `wrangler.jsonc` (or `.dev.vars`, 
 set one there) to unlock it. The token is checked against the API and stored in this
 browser's localStorage only. Nothing secret is built into the bundle.
 
-By default the app remembers your inputs, settings and token in localStorage (under keys
-starting `aiverse:`). Turning off *Settings → Remember my work on this device* deletes all
-of them, and nothing is saved until it's turned back on. The only thing kept is that choice
-itself (`aiverse:remember`). See `app/src/persistence.ts`.
+The token and settings are always kept in localStorage (under keys starting `aiverse:`) until
+you log out. By default your inputs in each tool are saved too; turning off *Settings →
+Remember my work on this device* deletes them, and none are saved until it's turned back on.
+See `app/src/persistence.ts`.
 
 | Script | Does |
 | --- | --- |
