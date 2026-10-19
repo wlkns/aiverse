@@ -1,6 +1,7 @@
 import type { Component } from 'vue'
 import {
   BookA,
+  Diff,
   FileText,
   Gauge,
   Heading,
@@ -21,8 +22,9 @@ export type ToolId =
   | 'key-points'
   | 'explain'
   | 'tone'
+  | 'diff'
 
-export type ToolCategory = 'create' | 'understand'
+export type ToolCategory = 'create' | 'understand' | 'analyse'
 
 export interface Tool {
   id: ToolId
@@ -40,6 +42,7 @@ export interface Tool {
 export const CATEGORIES: { id: ToolCategory; label: string }[] = [
   { id: 'create', label: 'Create' },
   { id: 'understand', label: 'Understand' },
+  { id: 'analyse', label: 'Analyse' },
 ]
 
 /**
@@ -136,6 +139,16 @@ export const TOOLS: Tool[] = [
     icon: Gauge,
     keywords: ['analyse', 'sentiment', 'formality', 'feedback', 'check'],
     component: () => import('@/views/tools/ToneView.vue'),
+  },
+  {
+    id: 'diff',
+    name: 'Compare text',
+    path: '/diff',
+    category: 'analyse',
+    description: 'See exactly what changed between two versions of a text.',
+    icon: Diff,
+    keywords: ['diff', 'difference', 'changes', 'versions', 'redline', 'track changes', 'compare'],
+    component: () => import('@/views/tools/DiffView.vue'),
   },
 ]
 

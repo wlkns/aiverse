@@ -1,5 +1,7 @@
 // Option ids must match the presets in worker/index.ts — the API validates them.
 
+import type { DiffGranularity } from '@/lib/diff'
+
 export interface Option<T extends string = string> {
   id: T
   label: string
@@ -104,6 +106,18 @@ export const WORD_STYLES = [
   { id: 'creative', label: 'Creative' },
 ] as const satisfies Option[]
 export type WordStyle = Ids<typeof WORD_STYLES>
+
+// App-only: Compare text runs its diff in the browser.
+export const DIFF_GRANULARITIES = [
+  { id: 'words', label: 'Words' },
+  { id: 'characters', label: 'Characters' },
+] as const satisfies Option<DiffGranularity>[]
+
+export const DIFF_VIEWS = [
+  { id: 'inline', label: 'Inline' },
+  { id: 'split', label: 'Side by side' },
+] as const satisfies Option[]
+export type DiffView = Ids<typeof DIFF_VIEWS>
 
 // Speed/quality options. Which model each uses is configured in wrangler.jsonc
 // (MODEL_TIERS); the app deliberately never names models.

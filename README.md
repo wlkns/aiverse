@@ -14,6 +14,7 @@ its API, and the API uses the OpenAI Responses API.
 | Key points | `/key-points` | `POST /api/key-points` | JSON: summary, key points, action items, decisions, open questions |
 | Explain simply | `/explain` | `POST /api/explain` | streamed (SSE) |
 | Tone analyser | `/tone` | `POST /api/tone` | JSON: scores, tones, issues, suggestions |
+| Compare text | `/diff` | `POST /api/diff` | streamed (SSE): the diff runs in the browser; the API only explains it |
 
 Everything lives in `app/`:
 

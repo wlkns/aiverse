@@ -29,6 +29,7 @@ import { z } from 'zod'
  *   /api/summarise   → SSE    { text, length, format, focus? }
  *   /api/write       → SSE    { prompt, content_type, tone, length }
  *   /api/explain     → SSE    { text, level, analogy, glossary }
+ *   /api/diff        → SSE    { original, changed, changes? }
  *   /api/rewrite     → JSON   { text, style, custom_style?, variations }
  *   /api/tone        → JSON   { text, audience? }
  *   /api/key-points  → JSON   { text, source_type }
@@ -952,6 +953,43 @@ ${input.analogy ? '- Include one clear, relatable analogy.\n' : ''}${
 
 ${UNTRUSTED_GUARD}`,
     user: userMessage('Explain the following.', tag('text', input.text)),
+  }),
+})
+
+// ---------- Tool: Compare text ----------
+// The app diffs the texts itself; this explains what the differences mean.
+
+streamTool({
+  path: '/diff',
+  body: toolSchema({
+    original: text('original'),
+    changed: text('changed'),
+    changes: optionalText('changes', 20_000),
+  }),
+  maxOutputTokens: 4000,
+  prompt: (input) => ({
+    system: `You are a meticulous editor who explains how one version of a text differs \
+from another.
+
+The user provides an original and a changed version of a text, and may include a \
+line-by-line list of the changes ("-" lines were removed or replaced, "+" lines were \
+added or are the replacements). Explain the differences:
+- Start with one sentence summing up what changed overall.
+- Then a Markdown bullet list of the meaningful changes, grouping related ones. Quote \
+short snippets where it helps, and say what effect each has (on meaning, facts, tone, \
+clarity or structure).
+- Finish with a single bullet covering any minor changes (typos, punctuation, \
+spacing), if there are any.
+- Only describe differences that are really there; never invent or guess at changes.
+- Write in the same language as the texts. No preamble.
+
+${UNTRUSTED_GUARD}`,
+    user: userMessage(
+      'Explain the differences between these two versions.',
+      tag('original', input.original),
+      tag('changed', input.changed),
+      tag('changes', input.changes),
+    ),
   }),
 })
 

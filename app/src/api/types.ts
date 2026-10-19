@@ -47,6 +47,13 @@ export interface ExplainRequest {
   glossary: boolean
 }
 
+export interface DiffRequest {
+  original: string
+  changed: string
+  /** The line-by-line differences ("-" removed, "+" added), to help the model. */
+  changes?: string
+}
+
 export type StreamEvent =
   | { type: 'delta'; text: string }
   | { type: 'done'; usage: TokenUsage; incomplete_reason?: string }

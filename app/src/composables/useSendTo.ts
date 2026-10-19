@@ -1,4 +1,5 @@
 import { useRouter } from 'vue-router'
+import { useDiffStore } from '@/stores/diff'
 import { useExplainStore } from '@/stores/explain'
 import { useHeadlinesStore } from '@/stores/headlines'
 import { useKeyPointsStore } from '@/stores/keyPoints'
@@ -20,6 +21,7 @@ const receivers: Record<ToolId, () => { receive: (text: string) => void }> = {
   'key-points': useKeyPointsStore,
   explain: useExplainStore,
   tone: useToneStore,
+  diff: useDiffStore,
 }
 
 /** Hand text from one tool's output to another tool's input and open it. */

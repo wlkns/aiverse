@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import type { Tool } from '@/tools/registry'
 
-defineProps<{ tool: Tool }>()
+const { stacked = false } = defineProps<{
+  tool: Tool
+  /** Full-width input with the output below it, for wide output such as diffs. */
+  stacked?: boolean
+}>()
 </script>
 
 <template>
@@ -18,7 +22,7 @@ defineProps<{ tool: Tool }>()
       </div>
     </header>
 
-    <div class="grid items-start gap-6 xl:grid-cols-2 [&>*]:min-w-0">
+    <div class="grid items-start gap-6 [&>*]:min-w-0" :class="!stacked && 'xl:grid-cols-2'">
       <form
         class="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         @submit.prevent
