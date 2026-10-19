@@ -25,6 +25,24 @@ export const useDiffStore = defineStore(
       ignoreWhitespace: ignoreWhitespace.value,
     }))
 
+    // The texts as they were when Compare was pressed. Editing either one hides
+    // the differences until Compare is pressed again; the options still apply.
+    const compared = ref<{ original: string; changed: string } | null>(null)
+    const result = computed(() =>
+      compared.value &&
+      compared.value.original === original.value &&
+      compared.value.changed === changed.value
+        ? diffText(compared.value.original, compared.value.changed, options.value)
+        : null,
+    )
+
+    const canCompare = computed(() => !!(original.value || changed.value))
+
+    function compare() {
+      if (!canCompare.value) return
+      compared.value = { original: original.value, changed: changed.value }
+    }
+
     // The diff itself runs in the browser; only the explanation uses the API.
     const runner = useStreamRunner<DiffRequest>('/diff')
     const explained = ref<{ original: string; changed: string } | null>(null)
@@ -34,17 +52,19 @@ export const useDiffStore = defineStore(
         (explained.value.original !== original.value || explained.value.changed !== changed.value),
     )
 
+    // Explaining needs an up-to-date comparison that found differences.
     const canRun = computed(
       () =>
+        !!result.value &&
+        !result.value.identical &&
         original.value.trim().length > 0 &&
         changed.value.trim().length > 0 &&
-        original.value !== changed.value &&
         !runner.isRunning.value,
     )
 
     function run() {
-      if (!canRun.value) return
-      let changes = formatChanges(diffText(original.value, changed.value, options.value))
+      if (!canRun.value || !result.value) return
+      let changes = formatChanges(result.value)
       if (changes.length > MAX_CHANGES_LENGTH) {
         changes = `${changes.slice(0, MAX_CHANGES_LENGTH)}\n…`
       }
@@ -73,6 +93,10 @@ export const useDiffStore = defineStore(
       ignoreWhitespace,
       hideUnchanged,
       options,
+      compared,
+      result,
+      canCompare,
+      compare,
       ...runner,
       isStale,
       canRun,
@@ -91,6 +115,7 @@ export const useDiffStore = defineStore(
         'ignoreCase',
         'ignoreWhitespace',
         'hideUnchanged',
+        'compared',
       ],
     },
   },
