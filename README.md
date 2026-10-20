@@ -15,6 +15,8 @@ its API, and the API uses the OpenAI Responses API.
 | Explain simply | `/explain` | `POST /api/explain` | streamed (SSE) |
 | Tone analyser | `/tone` | `POST /api/tone` | JSON: scores, tones, issues, suggestions |
 | Compare text | `/diff` | `POST /api/diff` | streamed (SSE): the diff runs in the browser; the API only explains it |
+| Compare lists | `/lists` | none | runs in the browser |
+| Sum numbers | `/sum` | none | runs in the browser |
 
 Everything lives in `app/`:
 

@@ -1,6 +1,8 @@
 // Option ids must match the presets in worker/index.ts — the API validates them.
 
 import type { DiffGranularity } from '@/lib/diff'
+import type { ListSeparator } from '@/lib/lists'
+import type { DecimalSeparator } from '@/lib/numbers'
 
 export interface Option<T extends string = string> {
   id: T
@@ -107,7 +109,7 @@ export const WORD_STYLES = [
 ] as const satisfies Option[]
 export type WordStyle = Ids<typeof WORD_STYLES>
 
-// App-only: Compare text runs its diff in the browser.
+// App-only: the Analyse tools run entirely in the browser.
 export const DIFF_GRANULARITIES = [
   { id: 'words', label: 'Words' },
   { id: 'characters', label: 'Characters' },
@@ -118,6 +120,17 @@ export const DIFF_VIEWS = [
   { id: 'split', label: 'Side by side' },
 ] as const satisfies Option[]
 export type DiffView = Ids<typeof DIFF_VIEWS>
+
+export const LIST_SEPARATORS = [
+  { id: 'lines', label: 'New lines' },
+  { id: 'commas', label: 'Commas' },
+  { id: 'both', label: 'Either' },
+] as const satisfies Option<ListSeparator>[]
+
+export const DECIMAL_SEPARATORS = [
+  { id: 'point', label: '1,234.56' },
+  { id: 'comma', label: '1.234,56' },
+] as const satisfies Option<DecimalSeparator>[]
 
 // Speed/quality options. Which model each uses is configured in wrangler.jsonc
 // (MODEL_TIERS); the app deliberately never names models.

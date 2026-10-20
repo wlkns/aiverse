@@ -1,6 +1,7 @@
 import type { Component } from 'vue'
 import {
   BookA,
+  Blend,
   Diff,
   FileText,
   Gauge,
@@ -10,6 +11,7 @@ import {
   MessageSquareReply,
   PenLine,
   Repeat2,
+  Sigma,
 } from '@lucide/vue'
 
 export type ToolId =
@@ -23,6 +25,8 @@ export type ToolId =
   | 'explain'
   | 'tone'
   | 'diff'
+  | 'lists'
+  | 'sum'
 
 export type ToolCategory = 'create' | 'understand' | 'analyse'
 
@@ -149,6 +153,26 @@ export const TOOLS: Tool[] = [
     icon: Diff,
     keywords: ['diff', 'difference', 'changes', 'versions', 'redline', 'track changes', 'compare'],
     component: () => import('@/views/tools/DiffView.vue'),
+  },
+  {
+    id: 'lists',
+    name: 'Compare lists',
+    path: '/lists',
+    category: 'analyse',
+    description: "Find what's only in one list and what's in both.",
+    icon: Blend,
+    keywords: ['list', 'compare', 'unique', 'shared', 'common', 'overlap', 'missing', 'venn'],
+    component: () => import('@/views/tools/ListsView.vue'),
+  },
+  {
+    id: 'sum',
+    name: 'Sum numbers',
+    path: '/sum',
+    category: 'analyse',
+    description: 'Add up every number in a block of text, prices included.',
+    icon: Sigma,
+    keywords: ['add', 'total', 'sum', 'calculate', 'money', 'currency', 'prices', 'numbers'],
+    component: () => import('@/views/tools/SumView.vue'),
   },
 ]
 
