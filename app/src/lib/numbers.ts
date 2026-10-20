@@ -54,6 +54,9 @@ const CURRENCY_CODES = [
 
 const MINUS = '[-−]'
 const CURRENCY = `\\p{Sc}|(?:${CURRENCY_CODES.join('|')})(?!\\p{L})`
+// A space between a number and its currency, never a line break: otherwise
+// "124\n£1,234" reads as 124 pounds.
+const GAP = '[ \\u00A0]?'
 
 function numberPattern(separator: DecimalSeparator): RegExp {
   const [group, decimal] = separator === 'point' ? [',', '\\.'] : ['\\.', ',']
@@ -68,10 +71,11 @@ function numberPattern(separator: DecimalSeparator): RegExp {
     // hyphen is a range ("10-20"), so the second number isn't negative.
     `(?<![\\p{L}\\p{N}_]|\\p{L}${MINUS})` +
       `(?<sign>${MINUS})?` +
-      `(?:(?<before>${CURRENCY})\\s?)?` +
+      `(?:(?<before>${CURRENCY})${GAP})?` +
       `(?<sign2>${MINUS})?` +
       `(?<number>${number})` +
-      `(?:\\s?(?<after>${CURRENCY}))?`,
+      // A currency after the number, unless it starts the next one ("124 £5").
+      `(?:${GAP}(?<after>${CURRENCY})(?!${GAP}${MINUS}?[\\d.,]))?`,
     'gu',
   )
 }
